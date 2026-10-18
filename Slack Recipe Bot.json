@@ -1,0 +1,315 @@
+{
+  "name": "Slack Recipe Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "trigger": [
+          "message"
+        ],
+        "channelId": {
+          "__rl": true,
+          "value": "C0CA3DPNJ1L",
+          "mode": "list",
+          "cachedResultName": "recipe-bot"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.slackTrigger",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        -48
+      ],
+      "id": "f56ea16a-a027-40e8-9c89-bc172e647108",
+      "name": "Receive Slack Message",
+      "webhookId": "8782b5ae-4c98-4db7-85f7-60805510dbc3",
+      "credentials": {
+        "slackApi": {
+          "id": "knVtqQiP69pDJl5f",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "eee5b99e-ca7a-440d-91a7-37e1b33de522",
+              "name": "recipe",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        160,
+        -48
+      ],
+      "id": "6d167b71-b364-4008-ba49-fb02722982b3",
+      "name": "Extract Recipe Request"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "433058b2-3650-4a87-a3df-5df03f1fa7ba",
+              "leftValue": "={{ $('Receive Slack Message').item.json.type }}",
+              "rightValue": "message",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "4c24f34b-97dc-4635-9902-224db93eb2be",
+              "leftValue": "={{ $('Receive Slack Message').item.json.subtype }}",
+              "rightValue": "message_deleted",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        384,
+        -48
+      ],
+      "id": "216dbf66-57a5-4275-8028-da3d4a5a7bfb",
+      "name": "Filter Message Events"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ce82f7c4-5768-400d-bf1f-45c3cbc10651",
+              "leftValue": "={{ $json.output[0].content[0].text.is_dish }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        896,
+        -144
+      ],
+      "id": "b3f8cdd8-a24a-4683-a45f-373490cbae68",
+      "name": "Check Recipe Request"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0CA3DPNJ1L",
+          "mode": "list",
+          "cachedResultName": "recipe-bot"
+        },
+        "text": "={{\n  '*🍲 ' + $json.output[0].content[0].text.dish_name + '*\\n\\n' +\n  '*Preparation Time:* ' + $json.output[0].content[0].text.preparation_time + '\\n' +\n  '*Cooking Time:* ' + $json.output[0].content[0].text.cooking_time + '\\n\\n' +\n  '*Ingredients:*\\n' +\n  $json.output[0].content[0].text.ingredients.map(i => '• ' + i).join('\\n') + '\\n\\n' +\n  '*Instructions:*\\n' +\n  $json.output[0].content[0].text.instructions.map((s, i) => (i + 1) + '. ' + s).join('\\n') + '\\n\\n' +\n  '*Cooking Tips:*\\n' +\n  $json.output[0].content[0].text.cooking_tips.map(t => '• ' + t).join('\\n')\n}}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false,
+          "mrkdwn": true
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.7,
+      "position": [
+        1120,
+        -160
+      ],
+      "id": "50993a24-4a65-4943-bde9-5ba31533e701",
+      "name": "Send Formatted Recipe",
+      "webhookId": "c64515e1-0c61-423f-bc1d-8d4bb6cfd45f",
+      "credentials": {
+        "slackApi": {
+          "id": "knVtqQiP69pDJl5f",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0CA3DPNJ1L",
+          "mode": "list",
+          "cachedResultName": "recipe-bot"
+        },
+        "text": "={{ $json.output[0].content[0].text.message }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false,
+          "mrkdwn": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.7,
+      "position": [
+        1120,
+        32
+      ],
+      "id": "10960812-99bb-421f-b6ad-bebb396d0877",
+      "name": "Send Conversational Reply",
+      "webhookId": "73dee94d-3bc9-42d9-8d77-aa5cfed41cf4",
+      "credentials": {
+        "slackApi": {
+          "id": "knVtqQiP69pDJl5f",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Generate a recipe based on the user's input: {{ $json.recipe }}\n\nIf the user's input is empty, null, or missing, do not invent a recipe.\nSet is_dish to false, leave all recipe fields empty, and set message to:\n\"I couldn't identify a recipe request. Please enter a dish name or cooking question.\"\n\nReturn the result as valid JSON only, using exactly these fields:\n- `is_dish`: boolean\n- `dish_name`: string\n- `preparation_time`: string\n- `cooking_time`: string\n- `ingredients`: array of strings\n- `instructions`: array of strings\n- `cooking_tips`: array of strings\n- `message`: string\n\nIf the input is a dish or recipe request, set `is_dish` to true and provide the recipe details.\n\nIf the input is not a dish or recipe request, set `is_dish` to false, leave the recipe fields as empty strings or empty arrays, and put a brief helpful response in `message`.\n\nDo not include Markdown code fences or any text outside the JSON."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "textFormat": {
+            "textOptions": {
+              "type": "json_schema",
+              "name": "recipe_response",
+              "schema": "\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"is_dish\": {\n      \"type\": \"boolean\"\n    },\n    \"dish_name\": {\n      \"type\": \"string\"\n    },\n    \"preparation_time\": {\n      \"type\": \"string\"\n    },\n    \"cooking_time\": {\n      \"type\": \"string\"\n    },\n    \"ingredients\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    },\n    \"instructions\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    },\n    \"cooking_tips\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    },\n    \"message\": {\n      \"type\": \"string\"\n    }\n  },\n  \"additionalProperties\": false,\n  \"required\": [\n    \"is_dish\",\n    \"dish_name\",\n    \"preparation_time\",\n    \"cooking_time\",\n    \"ingredients\",\n    \"instructions\",\n    \"cooking_tips\",\n    \"message\"\n  ]\n}\n"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        608,
+        -144
+      ],
+      "id": "e5b94094-b708-4f95-a290-c768df527259",
+      "name": "Generate Structured Recipe Response (LLM)",
+      "credentials": {
+        "openAiApi": {
+          "id": "ba8Mkih5HpyXnanP",
+          "name": "OpenAI account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Receive Slack Message": {
+      "main": [
+        [
+          {
+            "node": "Extract Recipe Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Recipe Request": {
+      "main": [
+        [
+          {
+            "node": "Filter Message Events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Message Events": {
+      "main": [
+        [
+          {
+            "node": "Generate Structured Recipe Response (LLM)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Recipe Request": {
+      "main": [
+        [
+          {
+            "node": "Send Formatted Recipe",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Conversational Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Structured Recipe Response (LLM)": {
+      "main": [
+        [
+          {
+            "node": "Check Recipe Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e838472c-c5e3-4f5e-9ff5-ae77f42ac27f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0513e109db06cd2323e56d2798f5b4c99f1bb82be3cf122fbab20598d13e64ad"
+  },
+  "nodeGroups": [],
+  "id": "anTS80bvx0aWVh8O",
+  "tags": []
+}
