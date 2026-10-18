@@ -12,7 +12,7 @@ An AI-powered Slack bot that generates structured recipes and answers general co
 <table>
   <tr>
     <td width="50%">
-      <img src="demo/Slack-Recipe-Bot-n8n-Workflow.png" alt="n8n workflow" width="100%">
+      <img src="demo/Slack-Recipe-Bot-n8n-WorkFlow.png" alt="n8n workflow" width="100%">
       <p align="center">n8n Workflow</p>
     </td>
     <td width="50%">
